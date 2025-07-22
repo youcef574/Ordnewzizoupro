@@ -112,11 +112,18 @@
                 <div class="filter-group">
                     <select id="statusFilter" class="filter-select">
                         <option value="" data-key="allStatuses">Tous les statuts</option>
-                        <option value="new" data-key="new">Nouveau</option>
-                        <option value="processing" data-key="processing">En cours</option>
-                        <option value="shipped" data-key="shipped">Expédié</option>
-                        <option value="completed" data-key="completed">Terminé</option>
-                        <option value="cancelled" data-key="cancelled">Annulé</option>
+                        <option value="new" data-key="statusNew">Nouveau</option>
+                        <option value="processing" data-key="statusProcessing">En cours</option>
+                        <option value="preparation" data-key="statusPreparation">En préparation</option>
+                        <option value="shipped" data-key="statusShipped">Expédié</option>
+                        <option value="completed" data-key="statusCompleted">Terminé</option>
+                        <option value="cancelled" data-key="statusCancelled">Annulé</option>
+                        <option value="returned" data-key="statusReturned">Retour</option>
+                        <option value="awaiting_exchange" data-key="statusAwaitingExchange">En attente d'échange</option>
+                        <option value="exchange_shipped" data-key="statusExchangeShipped">Échange expédié</option>
+                        <option value="exchange_completed" data-key="statusExchangeCompleted">Échange terminé</option>
+                        <option value="refund_processing" data-key="statusRefundProcessing">Remboursement en cours</option>
+                        <option value="dispute_open" data-key="statusDisputeOpen">Litige ouvert</option>
                     </select>
                 </div>
                 
@@ -158,6 +165,7 @@
                         <th class="col-variants" data-key="variants">Variantes</th>
                         <th class="col-quantity" data-key="quantity">Qté</th>
                         <th class="col-total" data-key="total">Total</th>
+                        <th class="col-status" data-key="status">Statut</th>
                         <th class="col-date" data-key="date">Date</th>
                         <th class="col-action" data-key="action">action</th>
                     </tr>
@@ -284,6 +292,4 @@
     </div>
     <script src="script.js"></script>
 </body>
-                            </html>
-
-  
+</html>
