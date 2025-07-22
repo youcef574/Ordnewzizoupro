@@ -71,6 +71,9 @@ class LanguageManager {
                 noAnswer: '❌ N\'a pas répondu',
                 called: '☎ Appelé avec succès',
                 callLater: '⏳ Rappeler plus tard',
+                deleteOrder: 'Supprimer',
+                downloadImage: 'Image',
+                downloadForm: 'Formulaire',
                 
                 // Actions
                 details: 'Détails',
@@ -85,7 +88,17 @@ class LanguageManager {
                 whatsappNotification: 'Notification WhatsApp',
                 whatsappQuestion: 'Voulez-vous notifier le client via WhatsApp du changement de statut ?',
                 sendWhatsApp: 'Envoyer WhatsApp',
-                cancel: 'Annuler'
+                cancel: 'Annuler',
+                
+                // Delete confirmation
+                confirmDelete: 'Confirmer la suppression',
+                deleteWarning: 'Êtes-vous sûr de vouloir supprimer cette commande ? Cette action ne peut pas être annulée.',
+                confirmDeleteBtn: 'Supprimer',
+                
+                // New Action Buttons
+                orderDeleted: 'تم حذف الطلبية بنجاح',
+                imageDownloaded: 'تم تحميل الصورة',
+                formDownloaded: 'تم تحميل الاستمارة'
             },
             en: {
                 // Header
@@ -155,6 +168,9 @@ class LanguageManager {
                 noAnswer: '❌ No answer',
                 called: '☎ Called successfully',
                 callLater: '⏳ Call back later',
+                deleteOrder: 'Delete',
+                downloadImage: 'Image',
+                downloadForm: 'Form',
                 
                 // Actions
                 details: 'Details',
@@ -169,7 +185,17 @@ class LanguageManager {
                 whatsappNotification: 'WhatsApp Notification',
                 whatsappQuestion: 'Would you like to notify the customer via WhatsApp about the status change?',
                 sendWhatsApp: 'Send WhatsApp',
-                cancel: 'Cancel'
+                cancel: 'Cancel',
+                
+                // Delete confirmation
+                confirmDelete: 'Confirm Delete',
+                deleteWarning: 'Are you sure you want to delete this order? This action cannot be undone.',
+                confirmDeleteBtn: 'Delete Order',
+                
+                // New Action Buttons
+                orderDeleted: 'Order deleted successfully',
+                imageDownloaded: 'Image downloaded',
+                formDownloaded: 'Form downloaded'
             }
         };
         
@@ -691,6 +717,19 @@ class OrdersManager {
             this.toggleNotesSection();
         });
         
+        // New action buttons
+        document.getElementById('deleteOrderBtn').addEventListener('click', () => {
+            this.showDeleteConfirmation();
+        });
+        
+        document.getElementById('downloadImageBtn').addEventListener('click', () => {
+            this.downloadOrderImage();
+        });
+        
+        document.getElementById('downloadFormBtn').addEventListener('click', () => {
+            this.downloadOrderForm();
+        });
+        
         // Quick notes buttons
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('quick-note-btn')) {
@@ -703,6 +742,40 @@ class OrdersManager {
         document.getElementById('notesTextarea').addEventListener('input', 
             this.debounce(() => this.saveSellerNotes(), 1000)
         );
+        
+        // Delete confirmation modal
+        this.initDeleteModal();
+    }
+    
+    initDeleteModal() {
+        const modal = document.getElementById('deleteModalOverlay');
+        const closeBtn = document.getElementById('deleteModalClose');
+        const cancelBtn = document.getElementById('deleteCancelBtn');
+        const confirmBtn = document.getElementById('deleteConfirmBtn');
+        
+        // Close modal events
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeDeleteModal());
+        }
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.closeDeleteModal());
+        }
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => this.confirmDeleteOrder());
+        }
+        
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) this.closeDeleteModal();
+            });
+        }
+        
+        // Escape key to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+                this.closeDeleteModal();
+            }
+        });
     }
     
     initWhatsAppModal() {
@@ -818,6 +891,321 @@ class OrdersManager {
             '\n\nBest regards,\nYouzinElegancia';
         
         return `${greeting}\n\n${statusMessage}${orderInfo}${signature}`;
+    }
+    
+    showDeleteConfirmation() {
+        const modal = document.getElementById('deleteModalOverlay');
+        if (modal) {
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    closeDeleteModal() {
+        const modal = document.getElementById('deleteModalOverlay');
+        if (modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    }
+    
+    confirmDeleteOrder() {
+        if (!this.currentOrder) return;
+        
+        // Remove order from array
+        this.orders = this.orders.filter(order => order.id !== this.currentOrder.id);
+        this.filteredOrders = this.filteredOrders.filter(order => order.id !== this.currentOrder.id);
+        
+        // Save to localStorage
+        this.saveOrders();
+        
+        // Update UI
+        this.renderOrders();
+        this.updateStats();
+        
+        // Close modals
+        this.closeDeleteModal();
+        this.closeModal();
+        
+        // Show notification
+        this.showNotification(window.langManager.t('orderDeleted'));
+    }
+    
+    downloadOrderImage() {
+        if (!this.currentOrder) return;
+        
+        // Create a canvas to capture the modal content
+        const modal = document.querySelector('.invoice-modal');
+        
+        // Use html2canvas library (we'll add it via CDN)
+        if (typeof html2canvas !== 'undefined') {
+            html2canvas(modal, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `order_${this.currentOrder.id}_${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                
+                this.showNotification(window.langManager.t('imageDownloaded'));
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                // Fallback: simple screenshot notification
+                this.showNotification('يرجى استخدام أدوات لقطة الشاشة في المتصفح');
+            });
+        } else {
+            // Fallback method
+            this.showNotification('يرجى استخدام أدوات لقطة الشاشة في المتصفح');
+        }
+    }
+    
+    downloadOrderForm() {
+        if (!this.currentOrder) return;
+        
+        // Generate professional PDF form
+        this.generateProfessionalPDF();
+    }
+    
+    generateProfessionalPDF() {
+        const order = this.currentOrder;
+        
+        // Create a new window with the professional form
+        const printWindow = window.open('', '_blank');
+        
+        const formHTML = `
+            <!DOCTYPE html>
+            <html dir="rtl" lang="ar">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>استمارة طلبية - ${order.id}</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Arial', sans-serif; 
+                        background: white; 
+                        color: #333; 
+                        line-height: 1.6;
+                        padding: 20px;
+                    }
+                    .form-container {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        background: white;
+                        border: 2px solid #8b5cf6;
+                        border-radius: 15px;
+                        overflow: hidden;
+                    }
+                    .header {
+                        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                        color: white;
+                        padding: 30px;
+                        text-align: center;
+                        position: relative;
+                    }
+                    .company-logo {
+                        font-size: 2.5rem;
+                        margin-bottom: 10px;
+                    }
+                    .company-name {
+                        font-size: 2rem;
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                    }
+                    .form-title {
+                        font-size: 1.2rem;
+                        opacity: 0.9;
+                    }
+                    .qr-code {
+                        position: absolute;
+                        top: 20px;
+                        left: 20px;
+                        width: 80px;
+                        height: 80px;
+                        background: white;
+                        border-radius: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.8rem;
+                        color: #333;
+                        text-align: center;
+                    }
+                    .content {
+                        padding: 40px;
+                    }
+                    .order-info {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 30px;
+                        margin-bottom: 40px;
+                    }
+                    .info-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 12px;
+                        border: 1px solid #e2e8f0;
+                    }
+                    .section-title {
+                        font-size: 1.3rem;
+                        font-weight: bold;
+                        color: #8b5cf6;
+                        margin-bottom: 20px;
+                        border-bottom: 2px solid #8b5cf6;
+                        padding-bottom: 10px;
+                    }
+                    .field {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 15px;
+                        padding: 10px 0;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .field:last-child {
+                        border-bottom: none;
+                    }
+                    .field-label {
+                        font-weight: 600;
+                        color: #475569;
+                        min-width: 120px;
+                    }
+                    .field-value {
+                        font-weight: 500;
+                        color: #1e293b;
+                        text-align: left;
+                    }
+                    .total-section {
+                        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                        color: white;
+                        padding: 25px;
+                        border-radius: 12px;
+                        text-align: center;
+                        margin: 30px 0;
+                    }
+                    .total-amount {
+                        font-size: 2.5rem;
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+                    .total-label {
+                        font-size: 1.2rem;
+                        opacity: 0.9;
+                    }
+                    .footer {
+                        background: #f8fafc;
+                        padding: 25px;
+                        text-align: center;
+                        border-top: 1px solid #e2e8f0;
+                        color: #64748b;
+                    }
+                    .date-stamp {
+                        font-size: 0.9rem;
+                        margin-bottom: 10px;
+                    }
+                    .company-info {
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                        .form-container { border: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="form-container">
+                    <div class="header">
+                        <div class="qr-code">
+                            QR CODE<br>
+                            #${order.id}
+                        </div>
+                        <div class="company-logo">💎</div>
+                        <div class="company-name">YouzinElegancia</div>
+                        <div class="form-title">استمارة طلبية رسمية</div>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="order-info">
+                            <div class="info-section">
+                                <div class="section-title">معلومات العميل</div>
+                                <div class="field">
+                                    <span class="field-label">الاسم:</span>
+                                    <span class="field-value">${order.customerName}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">الهاتف:</span>
+                                    <span class="field-value">${order.phone}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">الولاية:</span>
+                                    <span class="field-value">${order.wilaya}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">البلدية:</span>
+                                    <span class="field-value">${order.city}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="info-section">
+                                <div class="section-title">تفاصيل الطلبية</div>
+                                <div class="field">
+                                    <span class="field-label">رقم الطلبية:</span>
+                                    <span class="field-value">#${order.id}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">المنتج:</span>
+                                    <span class="field-value">${order.product}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">المواصفات:</span>
+                                    <span class="field-value">${order.variants}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">الكمية:</span>
+                                    <span class="field-value">${order.quantity}</span>
+                                </div>
+                                <div class="field">
+                                    <span class="field-label">التاريخ:</span>
+                                    <span class="field-value">${new Date(order.date).toLocaleDateString('ar-DZ')}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="total-section">
+                            <div class="total-amount">€${order.total.toFixed(2)}</div>
+                            <div class="total-label">إجمالي المبلغ</div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <div class="date-stamp">تم إنشاء هذه الاستمارة في: ${new Date().toLocaleDateString('ar-DZ')} - ${new Date().toLocaleTimeString('ar-DZ')}</div>
+                        <div class="company-info">
+                            YouzinElegancia - متجر المجوهرات الفاخرة<br>
+                            للاستفسارات: info@youzinelegancia.com | هاتف: +213 XXX XXX XXX
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                    // Auto print when page loads
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+        
+        printWindow.document.write(formHTML);
+        printWindow.document.close();
+        
+        this.showNotification(window.langManager.t('formDownloaded'));
     }
     
     openOrderModal(orderId) {
