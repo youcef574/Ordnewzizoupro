@@ -37,12 +37,25 @@ class LanguageManager {
                 quantity: 'Qté',
                 total: 'Total',
                 date: 'Date',
-                statut: 'statut',
+                status: 'Statut',
                 action: 'action',
+                
+                // Status Options
+                statusNew: 'Nouveau',
+                statusProcessing: 'En cours',
+                statusPreparation: 'En préparation',
+                statusShipped: 'Expédié',
+                statusCompleted: 'Terminé',
+                statusCancelled: 'Annulé',
+                statusReturned: 'Retour',
+                statusAwaitingExchange: 'En attente d\'échange',
+                statusExchangeShipped: 'Échange expédié',
+                statusExchangeCompleted: 'Échange terminé',
+                statusRefundProcessing: 'Remboursement en cours',
+                statusDisputeOpen: 'Litige ouvert',
                 
                 // Modal
                 invoiceTitle: 'Facture de clients',
-                invoiceTitle: 'Facture',
                 produit: 'Produit',
                 variantes: 'Variantes',
                 quantite: 'Quantité',
@@ -72,14 +85,7 @@ class LanguageManager {
                 whatsappNotification: 'Notification WhatsApp',
                 whatsappQuestion: 'Voulez-vous notifier le client via WhatsApp du changement de statut ?',
                 sendWhatsApp: 'Envoyer WhatsApp',
-                cancel: 'Annuler',
-                
-                // Status
-                statusNew: 'Nouveau',
-                statusProcessing: 'En cours',
-                statusShipped: 'Expédié',
-                statusCompleted: 'Terminé',
-                statusCancelled: 'Annulé'
+                cancel: 'Annuler'
             },
             en: {
                 // Header
@@ -115,13 +121,26 @@ class LanguageManager {
                 quantity: 'Qty',
                 total: 'Total',
                 date: 'Date',
-                statut: 'status',
+                status: 'Status',
                 action: 'action',
+                
+                // Status Options
+                statusNew: 'New',
+                statusProcessing: 'In progress',
+                statusPreparation: 'In preparation',
+                statusShipped: 'Shipped',
+                statusCompleted: 'Completed',
+                statusCancelled: 'Cancelled',
+                statusReturned: 'Returned',
+                statusAwaitingExchange: 'Awaiting exchange',
+                statusExchangeShipped: 'Exchange shipped',
+                statusExchangeCompleted: 'Exchange completed',
+                statusRefundProcessing: 'Refund in progress',
+                statusDisputeOpen: 'Dispute opened',
                 
                 // Modal
                 invoiceTitle: 'Invoice',
                 produit: 'Product',
-              //  couleur: 'Color',
                 Variantes: 'variable',   
                 quantite: 'Quantity',
                 nom: 'Name',
@@ -150,14 +169,7 @@ class LanguageManager {
                 whatsappNotification: 'WhatsApp Notification',
                 whatsappQuestion: 'Would you like to notify the customer via WhatsApp about the status change?',
                 sendWhatsApp: 'Send WhatsApp',
-                cancel: 'Cancel',
-                
-                // Status
-                statusNew: 'New',
-                statusProcessing: 'Processing',
-                statusShipped: 'Shipped',
-                statusCompleted: 'Completed',
-                statusCancelled: 'Cancelled'
+                cancel: 'Cancel'
             }
         };
         
@@ -182,6 +194,9 @@ class LanguageManager {
         
         // Update table headers
         this.updateTableHeaders();
+        
+        // Update status dropdowns
+        this.updateStatusDropdowns();
         
         // Update modal if open
         if (window.ordersManager && window.ordersManager.currentOrder) {
@@ -215,12 +230,24 @@ class LanguageManager {
     
     updateTableHeaders() {
         const headers = document.querySelectorAll('.orders-table th');
-        const headerKeys = ['id', 'nom', 'phone', 'wilaya', 'produit', 'variants', 'quantity', 'total', 'date', 'action'];
+        const headerKeys = ['id', 'nom', 'phone', 'wilaya', 'produit', 'variants', 'quantity', 'total', 'status', 'date', 'action'];
         
         headers.forEach((header, index) => {
             if (headerKeys[index] && this.translations[this.currentLang][headerKeys[index]]) {
                 header.textContent = this.translations[this.currentLang][headerKeys[index]];
             }
+        });
+    }
+    
+    updateStatusDropdowns() {
+        // Update all status dropdown options
+        document.querySelectorAll('.status-dropdown').forEach(select => {
+            Array.from(select.options).forEach(option => {
+                const key = option.getAttribute('data-key');
+                if (key && this.translations[this.currentLang][key]) {
+                    option.textContent = this.translations[this.currentLang][key];
+                }
+            });
         });
     }
     
@@ -235,6 +262,7 @@ class OrdersManager {
         this.orders = this.loadOrders();
         this.filteredOrders = [...this.orders];
         this.currentOrder = null;
+        this.currentOrderForWhatsApp = null;
         
         this.init();
     }
@@ -406,6 +434,90 @@ class OrdersManager {
         }
     }
     
+    getStatusClass(status) {
+        const statusClasses = {
+            'new': 'status-new',
+            'processing': 'status-processing',
+            'preparation': 'status-preparation',
+            'shipped': 'status-shipped',
+            'completed': 'status-completed',
+            'cancelled': 'status-cancelled',
+            'returned': 'status-returned',
+            'awaiting_exchange': 'status-awaiting-exchange',
+            'exchange_shipped': 'status-exchange-shipped',
+            'exchange_completed': 'status-exchange-completed',
+            'refund_processing': 'status-refund-processing',
+            'dispute_open': 'status-dispute-open'
+        };
+        return statusClasses[status] || 'status-new';
+    }
+    
+    createStatusDropdown(order) {
+        const select = document.createElement('select');
+        select.className = 'status-dropdown';
+        select.setAttribute('data-order-id', order.id);
+        
+        const statuses = [
+            { value: 'new', key: 'statusNew' },
+            { value: 'processing', key: 'statusProcessing' },
+            { value: 'preparation', key: 'statusPreparation' },
+            { value: 'shipped', key: 'statusShipped' },
+            { value: 'completed', key: 'statusCompleted' },
+            { value: 'cancelled', key: 'statusCancelled' },
+            { value: 'returned', key: 'statusReturned' },
+            { value: 'awaiting_exchange', key: 'statusAwaitingExchange' },
+            { value: 'exchange_shipped', key: 'statusExchangeShipped' },
+            { value: 'exchange_completed', key: 'statusExchangeCompleted' },
+            { value: 'refund_processing', key: 'statusRefundProcessing' },
+            { value: 'dispute_open', key: 'statusDisputeOpen' }
+        ];
+        
+        statuses.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status.value;
+            option.setAttribute('data-key', status.key);
+            option.textContent = window.langManager.t(status.key);
+            option.className = this.getStatusClass(status.value);
+            if (order.status === status.value) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+        
+        // Add change event listener
+        select.addEventListener('change', (e) => {
+            this.updateOrderStatus(order.id, e.target.value);
+        });
+        
+        select.className += ` ${this.getStatusClass(order.status)}`;
+        
+        return select;
+    }
+    
+    updateOrderStatus(orderId, newStatus) {
+        const order = this.orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const oldStatus = order.status;
+        order.status = newStatus;
+        
+        // Save to localStorage
+        this.saveOrders();
+        
+        // Update stats
+        this.updateStats();
+        
+        // Show WhatsApp modal
+        this.currentOrderForWhatsApp = order;
+        this.showWhatsAppModal();
+        
+        // Show notification
+        this.showNotification(window.langManager.t('statusUpdated'));
+        
+        // Re-render to update dropdown styling
+        this.renderOrders();
+    }
+    
     renderOrders() {
         const tbody = document.getElementById('ordersTableBody');
         tbody.innerHTML = '';
@@ -413,7 +525,7 @@ class OrdersManager {
         if (this.filteredOrders.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-gray);">
+                    <td colspan="11" style="text-align: center; padding: 2rem; color: var(--text-gray);">
                         ${window.langManager.t('noOrdersFound') || 'Aucune commande trouvée'}
                     </td>
                 </tr>
@@ -430,6 +542,8 @@ class OrdersManager {
             // Extract first name only
             const firstName = order.customerName.split(' ')[0];
             
+            const statusDropdown = this.createStatusDropdown(order);
+            
             row.innerHTML = `
                 <td class="col-id"><strong>${index + 1}</strong></td>
                 <td class="col-nom truncate" title="${order.customerName}">${firstName}</td>
@@ -439,6 +553,7 @@ class OrdersManager {
                 <td class="col-variants truncate" title="${order.variants}">${order.variants}</td>
                 <td class="col-quantity">${order.quantity}</td>
                 <td class="col-total">€${order.total.toFixed(2)}</td>
+                <td class="col-status"></td>
                 <td class="col-date">${this.formatDate(order.date)}</td>
                 <td class="col-action">
                     <button class="action-btn" onclick="ordersManager.openOrderModal('${order.id}')">
@@ -447,9 +562,12 @@ class OrdersManager {
                 </td>
             `;
             
-            // Add click event to row
+            // Add status dropdown to the status column
+            row.querySelector('.col-status').appendChild(statusDropdown);
+            
+            // Add click event to row (except on dropdown and action button)
             row.addEventListener('click', (e) => {
-                if (!e.target.closest('.action-btn')) {
+                if (!e.target.closest('.action-btn') && !e.target.closest('.status-dropdown')) {
                     this.openOrderModal(order.id);
                 }
             });
@@ -466,9 +584,9 @@ class OrdersManager {
     updateStats() {
         const stats = {
             new: this.orders.filter(o => o.status === 'new').length,
-            processing: this.orders.filter(o => o.status === 'processing').length,
-            shipped: this.orders.filter(o => o.status === 'shipped').length,
-            completed: this.orders.filter(o => o.status === 'completed').length
+            processing: this.orders.filter(o => o.status === 'processing' || o.status === 'preparation').length,
+            shipped: this.orders.filter(o => o.status === 'shipped' || o.status === 'exchange_shipped').length,
+            completed: this.orders.filter(o => o.status === 'completed' || o.status === 'exchange_completed').length
         };
         
         document.getElementById('newOrdersCount').textContent = stats.new;
@@ -523,7 +641,7 @@ class OrdersManager {
     generateCSV() {
         const headers = [
             'N°', 'Customer Name', 'Phone', 'Wilaya', 'City', 'Product', 
-            'Variants', 'Quantity', 'Total', 'Date', 'Customer Notes', 'Seller Notes'
+            'Variants', 'Quantity', 'Total', 'Status', 'Date', 'Customer Notes', 'Seller Notes'
         ];
         
         const rows = this.filteredOrders.map(order => [
@@ -536,6 +654,7 @@ class OrdersManager {
             order.variants,
             order.quantity,
             order.total,
+            order.status,
             this.formatDate(order.date),
             order.customerNotes,
             order.sellerNotes
@@ -656,16 +775,30 @@ class OrdersManager {
             fr: {
                 new: 'Votre commande a été reçue et est en cours de traitement.',
                 processing: 'Votre commande est actuellement en cours de préparation.',
+                preparation: 'Votre commande est en cours de préparation et sera bientôt expédiée.',
                 shipped: 'Bonne nouvelle ! Votre commande a été expédiée et est en route.',
                 completed: 'Votre commande a été livrée avec succès. Merci pour votre achat !',
-                cancelled: 'Nous regrettons de vous informer que votre commande a été annulée.'
+                cancelled: 'Nous regrettons de vous informer que votre commande a été annulée.',
+                returned: 'Votre retour a été traité.',
+                awaiting_exchange: 'Votre demande d\'échange est en attente de traitement.',
+                exchange_shipped: 'Votre échange a été expédié.',
+                exchange_completed: 'Votre échange a été complété avec succès.',
+                refund_processing: 'Votre remboursement est en cours de traitement.',
+                dispute_open: 'Un litige a été ouvert concernant votre commande.'
             },
             en: {
                 new: 'Your order has been received and is being processed.',
                 processing: 'Your order is currently being prepared.',
+                preparation: 'Your order is being prepared and will be shipped soon.',
                 shipped: 'Good news! Your order has been shipped and is on its way.',
                 completed: 'Your order has been successfully delivered. Thank you for your purchase!',
-                cancelled: 'We regret to inform you that your order has been cancelled.'
+                cancelled: 'We regret to inform you that your order has been cancelled.',
+                returned: 'Your return has been processed.',
+                awaiting_exchange: 'Your exchange request is awaiting processing.',
+                exchange_shipped: 'Your exchange has been shipped.',
+                exchange_completed: 'Your exchange has been completed successfully.',
+                refund_processing: 'Your refund is being processed.',
+                dispute_open: 'A dispute has been opened regarding your order.'
             }
         };
         
@@ -775,7 +908,7 @@ class OrdersManager {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: var(--status-new);
+            background: var(--purple);
             color: white;
             padding: 1rem 1.5rem;
             border-radius: var(--radius-md);
