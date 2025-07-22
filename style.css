@@ -17,11 +17,18 @@
     --purple-dark: #7c3aed;
     
     /* Status Colors */
-    --status-new: #10b981;
-    --status-processing: #f59e0b;
-    --status-shipped: #3b82f6;
-    --status-completed: #8b5cf6;
+    --status-new: #6b7280;
+    --status-processing: #60a5fa;
+    --status-preparation: #fbbf24;
+    --status-shipped: #4169e1;
+    --status-completed: #10b981;
     --status-cancelled: #ef4444;
+    --status-returned: #c084fc;
+    --status-awaiting-exchange: #f97316;
+    --status-exchange-shipped: #4169e1;
+    --status-exchange-completed: #34d399;
+    --status-refund-processing: #64748b;
+    --status-dispute-open: #991b1b;
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -462,7 +469,7 @@ body {
 }
 
 .btn-call {
-    background: var(--status-new);
+    background: var(--status-completed);
     color: white;
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 0.75rem;
@@ -471,6 +478,103 @@ body {
 
 .btn-call:hover {
     background: #059669;
+}
+
+/* Status Dropdown Styles */
+.status-dropdown {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-white);
+    color: white;
+    min-width: 140px;
+    outline: none;
+}
+
+.status-dropdown:focus {
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+/* Status Colors */
+.status-dropdown.status-new,
+.status-dropdown option.status-new {
+    background: var(--status-new);
+    color: white;
+}
+
+.status-dropdown.status-processing,
+.status-dropdown option.status-processing {
+    background: var(--status-processing);
+    color: white;
+}
+
+.status-dropdown.status-preparation,
+.status-dropdown option.status-preparation {
+    background: var(--status-preparation);
+    color: white;
+}
+
+.status-dropdown.status-shipped,
+.status-dropdown option.status-shipped {
+    background: var(--status-shipped);
+    color: white;
+}
+
+.status-dropdown.status-completed,
+.status-dropdown option.status-completed {
+    background: var(--status-completed);
+    color: white;
+}
+
+.status-dropdown.status-cancelled,
+.status-dropdown option.status-cancelled {
+    background: var(--status-cancelled);
+    color: white;
+}
+
+.status-dropdown.status-returned,
+.status-dropdown option.status-returned {
+    background: var(--status-returned);
+    color: white;
+}
+
+.status-dropdown.status-awaiting-exchange,
+.status-dropdown option.status-awaiting-exchange {
+    background: var(--status-awaiting-exchange);
+    color: white;
+}
+
+.status-dropdown.status-exchange-shipped,
+.status-dropdown option.status-exchange-shipped {
+    background: var(--status-exchange-shipped);
+    color: white;
+}
+
+.status-dropdown.status-exchange-completed,
+.status-dropdown option.status-exchange-completed {
+    background: var(--status-exchange-completed);
+    color: white;
+}
+
+.status-dropdown.status-refund-processing,
+.status-dropdown option.status-refund-processing {
+    background: var(--status-refund-processing);
+    color: white;
+}
+
+.status-dropdown.status-dispute-open,
+.status-dropdown option.status-dispute-open {
+    background: var(--status-dispute-open);
+    color: white;
+}
+
+.status-dropdown:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Table Container */
@@ -551,7 +655,7 @@ body {
 /* Modern Table Design */
 .orders-table {
     width: 100%;
-    min-width: 1200px;
+    min-width: 1400px;
     border-collapse: collapse;
     background: var(--bg-white);
     border-radius: var(--radius-lg);
@@ -629,6 +733,11 @@ body {
     color: var(--purple);
 }
 
+.col-status {
+    width: 150px;
+    text-align: center;
+}
+
 .col-date {
     width: 100px;
     font-size: 0.8rem;
@@ -694,7 +803,7 @@ body {
 
 .orders-table tbody tr.unread {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.1) 100%);
-    border-left: 4px solid var(--status-new);
+    border-left: 4px solid var(--status-completed);
     box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1);
 }
 
@@ -1136,7 +1245,7 @@ body {
     }
     
     .orders-table {
-        min-width: 600px;
+        min-width: 800px;
     }
     
     /* Hide some columns on mobile to save space */
@@ -1238,6 +1347,12 @@ body {
         padding: 1rem;
         font-size: 1rem;
     }
+    
+    /* Status dropdown mobile */
+    .status-dropdown {
+        min-width: 120px;
+        font-size: 0.75rem;
+    }
 }
 
 /* Responsive Design - Tablet */
@@ -1270,7 +1385,7 @@ body {
     }
     
     .orders-table {
-        min-width: 1200px;
+        min-width: 1400px;
     }
     
     .customer-details {
@@ -1310,39 +1425,43 @@ body {
     }
     
     .col-id {
-        width: 4%;
+        width: 3%;
     }
     
     .col-nom {
-        width: 8%;
+        width: 7%;
     }
     
     .col-phone {
-        width: 12%;
+        width: 10%;
     }
     
     .col-wilaya {
-        width: 8%;
+        width: 7%;
     }
     
     .col-produit {
-        width: 15%;
+        width: 13%;
     }
     
     .col-variants {
-        width: 12%;
+        width: 10%;
     }
     
     .col-quantity {
-        width: 6%;
+        width: 5%;
     }
     
     .col-total {
-        width: 8%;
+        width: 7%;
+    }
+    
+    .col-status {
+        width: 12%;
     }
     
     .col-date {
-        width: 10%;
+        width: 8%;
     }
     
     .col-action {
