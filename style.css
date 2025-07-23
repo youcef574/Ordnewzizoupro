@@ -1102,8 +1102,32 @@ body {
 
 /* Extended Actions */
 .extended-actions {
-    display: none;
+    display: flex;
+    justify-content: center;
     padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.extended-actions .btn-danger {
+    background: linear-gradient(135deg, var(--status-cancelled) 0%, #dc2626 100%);
+    color: white;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.extended-actions .btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
 }
 
 /* Delete Confirmation Modal */
